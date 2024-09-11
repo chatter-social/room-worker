@@ -34,9 +34,12 @@ type Response struct {
 
 func fetchLiveRooms(client *db.PrismaClient, ctx context.Context) {
 	// Get all live rooms
-	hostURL := "https://prod-media.chattersocial.io"
-	apiKey := "APIidGzFR7PNWQs"
-	apiSecret := "SAzQ7YHO9ShgskfoAtIUCvyOvVrRxXXXPicJLO4nw2L"
+	hostURL := os.Getenv("LIVEKIT_HOST")
+	apiKey := os.Getenv("LIVEKIT_API_KEY")
+	apiSecret := os.Getenv("LIVEKIT_API_KEY_SECRET")
+	emqxHost := os.Getenv("EMQX_HOST")
+	emqxPort := os.Getenv("EMQX_PORT")
+
 	roomClient := lksdk.NewRoomServiceClient(hostURL, apiKey, apiSecret)
 
 	// list rooms
@@ -60,7 +63,7 @@ func fetchLiveRooms(client *db.PrismaClient, ctx context.Context) {
 
 	for _, room := range rooms {
 
-		baseURL := "http://ws-dev-002.chattersocial.io:18083/api/v5/subscriptions?topic=room/%s/listener&limit=1"
+		baseURL := emqxHost + ":" + emqxPort + "/api/v5/subscriptions?topic=room/%s/listener&limit=1"
 		url := fmt.Sprintf(baseURL, room.Name)
 		listenerCount, err := fetchURL(url)
 		if err != nil {
@@ -82,9 +85,11 @@ func fetchLiveRooms(client *db.PrismaClient, ctx context.Context) {
 }
 
 func fetchEgress() {
-	hostURL := "https://prod-media.chattersocial.io"
-	apiKey := "APIidGzFR7PNWQs"
-	apiSecret := "SAzQ7YHO9ShgskfoAtIUCvyOvVrRxXXXPicJLO4nw2L"
+	hostURL := os.Getenv("LIVEKIT_HOST")
+	apiKey := os.Getenv("LIVEKIT_API_KEY")
+	apiSecret := os.Getenv("LIVEKIT_API_KEY_SECRET")
+	emqxHost := os.Getenv("EMQX_HOST")
+	emqxPort := os.Getenv("EMQX_PORT")
 
 	egressClient := lksdk.NewEgressClient(hostURL, apiKey, apiSecret)
 
