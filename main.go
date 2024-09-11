@@ -63,7 +63,7 @@ func fetchLiveRooms(client *db.PrismaClient, ctx context.Context) {
 
 	for _, room := range rooms {
 
-		baseURL := emqxHost + ":" + emqxPort + "/api/v5/subscriptions?topic=room/%s/listener&limit=1"
+		baseURL := "http://" emqxHost + ":" + emqxPort + "/api/v5/subscriptions?topic=room/%s/listener&limit=1"
 		url := fmt.Sprintf(baseURL, room.Name)
 		listenerCount, err := fetchURL(url)
 		if err != nil {
