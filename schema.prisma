@@ -29,17 +29,6 @@ enum ReplyRestrictionType {
   followers
 }
 
-enum UserReportReasonType {
-  harmfulContent
-  spam
-  thirdReason
-}
-
-enum RoomReportReasonType {
-  harmfulContent
-  thumbnailImage
-}
-
 enum FeedbackCategoryType {
   accessibility
   liveRoom
@@ -128,200 +117,225 @@ enum AccountStatus {
 }
 
 model InviteCode {
-  id                String   @id @default(uuid()) @db.Uuid
-  created           DateTime @default(now())
-  shared            Boolean  @default(false)
-  shared_at         DateTime?
-  code              String   @unique
-  owner_id          String   @db.Uuid
-  owner             User     @relation(fields: [owner_id], references: [id])
-  redeemed_at       DateTime?
-  redeemed          Boolean  @default(false)
-  redeemed_by_id    String?   @db.Uuid @unique
-  redeemed_by       User?     @relation("redeemedBy", fields: [redeemed_by_id], references: [id])
+  id             String    @id @default(uuid()) @db.Uuid
+  created        DateTime  @default(now())
+  shared         Boolean   @default(false)
+  shared_at      DateTime?
+  code           String    @unique
+  owner_id       String    @db.Uuid
+  owner          User      @relation(fields: [owner_id], references: [id])
+  redeemed_at    DateTime?
+  redeemed       Boolean   @default(false)
+  redeemed_by_id String?   @unique @db.Uuid
+  redeemed_by    User?     @relation("redeemedBy", fields: [redeemed_by_id], references: [id])
+}
+
+model NewInviteCodes {
+  id                 String   @id @default(uuid()) @db.Uuid
+  code               String   @unique
+  revoked            Boolean  @default(false)
+  max_redeem_count   Int      @default(10)
+  used_redeem_count  Int      @default(0)
+  owner              User     @relation("invite_code_owner", fields: [ownerId], references: [id])
+  ownerId            String   @unique @db.Uuid
+  users_who_redeemed User[]   @relation("invite_code_redeemers")
+  created_at         DateTime @default(now())
 }
 
 model User {
-  id                          String                    @id @unique @default(uuid()) @db.Uuid
-  created_at                  DateTime                  @default(now())
-  status                      AccountStatus             @default(active)
-  email                       String                    @unique
-  first_name                   String
-  last_name                   String
-  phone_number                String?                   @unique
-  password                    String?
-  avatar                      String?
-  username                    String                    @unique
-  verified                     Boolean                   @default(false)
-  monetization_enabled        Boolean                   @default(false)
-  pro_subscribed              Boolean                   @default(false)
-  profile_audio_description    String?
-  custom_link                 String?
-  custom_link_name            String?
-  caption_url                 String?
-  duration                    String?
-  profile_description          String?
-  online                      Boolean                   @default(false)
-  owned_channels              Channel[]
-  follower_of_channels        ChannelFollowers[]        @relation("follower_user_id")
-  dms_box_owner               DMBox[]                   @relation("dms_box_owner")
-  user_to_dmboxes             DMBoxToUser[]
-  direct_messages             DirectMessage[]
-  notifications                Notification[]
-  room_chat_messages          RoomChatMessages[]
-  listner_in_rooms            RoomListeners[]
-  participant_in_rooms        RoomParicipants[]         @relation("RoomParticipants")
-  room_requests               RoomRequests[]
-  social_logins               SocialLogin[]
-  user_followers              UserFollows[]             @relation("following_user_id")
-  user_follows                UserFollows[]             @relation("follower_user_id")
-  profile_socials              UserProfileSocials[]
-  DMbox                       DMBox[]                   @relation("DMBoxToUser")
-  removed_from_rooms          RemovedFromRooms[]        @relation("RemovedFromRooms")
-  removed_user_from_rooms     RemovedFromRooms[]        @relation("RemovedFromRoomsBy")
-  invited_to_speak_rooms      RoomInvitedSpeakers[]     @relation("InvitedSpeakerInRooms")
-  invited_users_to_speak      RoomInvitedSpeakers[]     @relation("InvitedBy")
-  host_of_rooms               Room[]                    @relation("host")
-  owned_conversations         Conversation[]
-  users_reply                 ConversationReply[]
-  users_likes                 ConversationLikes[]
-  users_views                 ConversationViews[]
-  reply_views                 ConversationReplyViews[]
-  room_poll_votes             RoomPollVotes[]
-  created_polls               RoomPoll[]
-  users_reactions             ConversationReactions[]
-  push_devices                UserPushDevices[]
-  pinned_links                RoomPinnedLinks[]
-  contributions               Contributions[]
-  blocked_users               UserBlocks[]              @relation("blocked")
-  blocked_by_users            UserBlocks[]              @relation("blocked_by")
-  report_sender               UserReports[]             @relation("report_receiver")
-  report_receiver             UserReports[]             @relation("report_sender")
-  report_user_on_dms_message  DmsMessageReports[]
-  report_user_on_room_message RoomMessageReports[]
-  report_user_on_room         RoomReports[]
-  report_user_on_conversation ConversationReports[]
-  report_user_on_channel      ChannelReports[]
-  user_feedback               Feedback[]
-  participant_in_moments      Moment[]                  @relation("MomentParticipants")
-  created_moments             Moment[]                  @relation("CreatedMoments")
-  moment_likes                MomentLikes[]
-  moment_views                MomentViews[]
-  moment_comments             MomentComments[]
-  moment_comments_likes       MomentCommentLikes[]
-  moment_comments_reply       MomentCommentReply[]
-  moment_comments_reply_likes MomentCommentReplyLikes[]
-  country                     String                    @default("US")
-  owner_of_rooms              Room[]                    @relation("user_as_owner")
-  RoomInvitedCoHosts          RoomInvitedCoHosts[]
-  RoomJoinedCoHosts           RoomJoinedCoHosts[]
-  last_active_time            DateTime?
+  id                                              String                       @id @unique @default(uuid()) @db.Uuid
+  created_at                                      DateTime                     @default(now())
+  status                                          AccountStatus                @default(active)
+  email                                           String                       @unique
+  dateOfBirth                                     DateTime                     @default("1900-01-01T00:00:00Z")
+  showMatureContent                               Boolean                      @default(false)
+  first_name                                      String
+  last_name                                       String
+  phone_number                                    String?                      @unique
+  password                                        String?
+  avatar                                          String?
+  username                                        String                       @unique
+  verified                                        Boolean                      @default(false)
+  monetization_enabled                            Boolean                      @default(false)
+  pro_subscribed                                  Boolean                      @default(false)
+  profile_audio_description                       String?
+  custom_link                                     String?
+  custom_link_name                                String?
+  caption_url                                     String?
+  duration                                        String?
+  profile_description                             String?
+  online                                          Boolean                      @default(false)
+  owned_channels                                  Channel[]
+  follower_of_channels                            ChannelFollowers[]           @relation("follower_user_id")
+  dms_box_owner                                   DMBox[]                      @relation("dms_box_owner")
+  user_to_dmboxes                                 DMBoxToUser[]
+  direct_messages                                 DirectMessage[]
+  notifications                                   Notification[]
+  room_chat_messages                              RoomChatMessages[]
+  listner_in_rooms                                RoomListeners[]
+  participant_in_rooms                            RoomParicipants[]            @relation("RoomParticipants")
+  room_requests                                   RoomRequests[]
+  social_logins                                   SocialLogin[]
+  user_followers                                  UserFollows[]                @relation("following_user_id")
+  user_follows                                    UserFollows[]                @relation("follower_user_id")
+  profile_socials                                 UserProfileSocials[]
+  DMbox                                           DMBox[]                      @relation("DMBoxToUser")
+  removed_from_rooms                              RemovedFromRooms[]           @relation("RemovedFromRooms")
+  removed_user_from_rooms                         RemovedFromRooms[]           @relation("RemovedFromRoomsBy")
+  invited_to_speak_rooms                          RoomInvitedSpeakers[]        @relation("InvitedSpeakerInRooms")
+  invited_users_to_speak                          RoomInvitedSpeakers[]        @relation("InvitedBy")
+  host_of_rooms                                   Room[]                       @relation("host")
+  owned_conversations                             Conversation[]
+  users_reply                                     ConversationReply[]
+  users_likes                                     ConversationLikes[]
+  users_views                                     ConversationViews[]
+  reply_views                                     ConversationReplyViews[]
+  room_poll_votes                                 RoomPollVotes[]
+  created_polls                                   RoomPoll[]
+  users_reactions                                 ConversationReactions[]
+  push_devices                                    UserPushDevices[]
+  pinned_links                                    RoomPinnedLinks[]
+  contributions                                   Contributions[]
+  blocked_users                                   UserBlocks[]                 @relation("blocked")
+  blocked_by_users                                UserBlocks[]                 @relation("blocked_by")
+  report_sender                                   UserReports[]                @relation("report_receiver")
+  report_receiver                                 UserReports[]                @relation("report_sender")
+  report_user_on_dms_message                      DmsMessageReports[]
+  report_user_on_room_message                     RoomMessageReports[]
+  report_user_on_room                             RoomReports[]
+  report_user_on_conversation                     ConversationReports[]
+  report_user_on_channel                          ChannelReports[]
+  user_feedback                                   Feedback[]
+  participant_in_moments                          Moment[]                     @relation("MomentParticipants")
+  created_moments                                 Moment[]                     @relation("CreatedMoments")
+  moment_likes                                    MomentLikes[]
+  moment_views                                    MomentViews[]
+  moment_comments                                 MomentComments[]
+  moment_comments_likes                           MomentCommentLikes[]
+  moment_comments_reply                           MomentCommentReply[]
+  moment_comments_reply_likes                     MomentCommentReplyLikes[]
+  country                                         String                       @default("US")
+  owner_of_rooms                                  Room[]                       @relation("user_as_owner")
+  RoomInvitedCoHosts                              RoomInvitedCoHosts[]
+  RoomJoinedCoHosts                               RoomJoinedCoHosts[]
+  last_active_time                                DateTime?
   // active                      Boolean                   @default(false)
-  channel_sender_request      ChannelRequests[]         @relation("sender")
-  channel_recipient_request   ChannelRequests[]         @relation("recipient")
-  channel_admins              ChannelAdmins[]
-  channel_leaders             ChannelLeaders[]
-  followed_topics             Topic[]                   @relation("TopicToUser")
-  multistream_endpoints       MultistreamEndpoints[]
-  rooms_user_rsvped_to        Room[]
-  deactivated                 Boolean                   @default(false)
-  mutedUsers                  UserMutedAccounts[]       @relation("mutedUser")
-  mutedByUsers                UserMutedAccounts[]       @relation("mutedByUser")
-  pushNotificationSettings     PushNotificationsSettings?
-  smsNotificationsSettings     SMSNotificationsSettings?
-  displayAndLanguagesSettings DisplayAndLanguagesSettings?
-  privacyAndSafetySettings    PrivacyAndSafetySettings?
-  room_attendance             RoomAttendance[]
-  dismissed_users             DismissedSuggestedUsers[]   @relation("dismissedUser")
-  dismissed_by_users          DismissedSuggestedUsers[]   @relation("dismissedByUser")
-  shared_by_users             Sharing[]                   @relation("sharedByUser")
-  shared_with_users           Sharing[]                   @relation("sharedWithUser")
-  shared_profiles              Sharing[]                   @relation("profile")
-  subscribed_channels         ChannelSubscribers[]
-  video_participant_in_rooms  RoomVideoParticipants[]
-  reply_likes                 ConversationReplyLikes[]
-  early_access                Boolean                     @default(false)
-  role                        UserRole                    @default(user)
-  password_reset_requests     PasswordResetRequest[]
-  deleted                     Boolean                     @default(false)
-  enabledNotificationsByUserNotificationsSettings PushNotificationsSettings[] @relation("EnabledNotificationsFromUsers")
-  invite_codes                InviteCode[]
-  redeemed_invite_code        InviteCode?  @relation("redeemedBy")
+  channel_sender_request                          ChannelRequests[]            @relation("sender")
+  channel_recipient_request                       ChannelRequests[]            @relation("recipient")
+  channel_admins                                  ChannelAdmins[]
+  channel_leaders                                 ChannelLeaders[]
+  followed_topics                                 Topic[]                      @relation("TopicToUser")
+  multistream_endpoints                           MultistreamEndpoints[]
+  rooms_user_rsvped_to                            Room[]
+  deactivated                                     Boolean                      @default(false)
+  mutedUsers                                      UserMutedAccounts[]          @relation("mutedUser")
+  mutedByUsers                                    UserMutedAccounts[]          @relation("mutedByUser")
+  pushNotificationSettings                        PushNotificationsSettings?
+  smsNotificationsSettings                        SMSNotificationsSettings?
+  displayAndLanguagesSettings                     DisplayAndLanguagesSettings?
+  privacyAndSafetySettings                        PrivacyAndSafetySettings?
+  room_attendance                                 RoomAttendance[]
+  dismissed_users                                 DismissedSuggestedUsers[]    @relation("dismissedUser")
+  dismissed_by_users                              DismissedSuggestedUsers[]    @relation("dismissedByUser")
+  shared_by_users                                 Sharing[]                    @relation("sharedByUser")
+  shared_with_users                               Sharing[]                    @relation("sharedWithUser")
+  shared_profiles                                 Sharing[]                    @relation("profile")
+  subscribed_channels                             ChannelSubscribers[]
+  video_participant_in_rooms                      RoomVideoParticipants[]
+  reply_likes                                     ConversationReplyLikes[]
+  early_access                                    Boolean                      @default(false)
+  role                                            UserRole                     @default(user)
+  password_reset_requests                         PasswordResetRequest[]
+  deleted                                         Boolean                      @default(false)
+  enabledNotificationsByUserNotificationsSettings PushNotificationsSettings[]  @relation("EnabledNotificationsFromUsers")
+  invite_codes                                    InviteCode[]
+  redeemed_invite_code                            InviteCode?                  @relation("redeemedBy")
+  user_invite_code                                NewInviteCodes?              @relation("invite_code_owner")
+  new_redeemed_invite_code                        NewInviteCodes?              @relation("invite_code_redeemers", fields: [redeemed_invite_code_id], references: [id])
+  redeemed_invite_code_id                         String?                      @db.Uuid
+
+  @@index([avatar])
 }
 
 model DismissedSuggestedUsers {
-  id                      String    @id @default(uuid()) @db.Uuid
-  dismissed_user_id       String    @db.Uuid
-  dismissed_by_user_id    String    @db.Uuid
-  dismissedUser           User      @relation("dismissedUser", fields: [dismissed_user_id], references: [id])
-  dismissedByUser         User      @relation("dismissedByUser", fields: [dismissed_by_user_id], references: [id])
+  id                   String @id @default(uuid()) @db.Uuid
+  dismissed_user_id    String @db.Uuid
+  dismissed_by_user_id String @db.Uuid
+  dismissedUser        User   @relation("dismissedUser", fields: [dismissed_user_id], references: [id])
+  dismissedByUser      User   @relation("dismissedByUser", fields: [dismissed_by_user_id], references: [id])
+
+  @@index([dismissed_user_id])
+  @@index([dismissed_by_user_id])
 }
 
 model PushNotificationsSettings {
-  id                          String          @id @unique @default(uuid()) @db.Uuid
-  rooms                       Boolean         @default(false)
-  roomInvitations             Boolean         @default(false)
-  momentsTags                 Boolean         @default(false)
-  mentionsAndReplies          Boolean         @default(false)
-  likes                       Boolean         @default(false)
-  newFollowers                Boolean         @default(false)
-  directMessages              Boolean         @default(false)
-  contactsJoinsChatter        Boolean         @default(false)
-  contactsJoinsLiveRoom       Boolean         @default(false)
-  chatterLiveEvents           Boolean         @default(false)
-  scheduledRoomsByCoHost      Boolean         @default(false)
-  newScheduledRooms           Boolean         @default(false)
-  enabledUsers                User[]          @relation("EnabledNotificationsFromUsers")
-  user                        User            @relation(fields: [userId], references: [id])
-  userId                      String          @unique @db.Uuid
+  id                     String  @id @unique @default(uuid()) @db.Uuid
+  rooms                  Boolean @default(false)
+  roomInvitations        Boolean @default(false)
+  momentsTags            Boolean @default(false)
+  mentionsAndReplies     Boolean @default(false)
+  likes                  Boolean @default(false)
+  newFollowers           Boolean @default(false)
+  directMessages         Boolean @default(false)
+  contactsJoinsChatter   Boolean @default(false)
+  contactsJoinsLiveRoom  Boolean @default(false)
+  chatterLiveEvents      Boolean @default(false)
+  scheduledRoomsByCoHost Boolean @default(false)
+  newScheduledRooms      Boolean @default(false)
+  enabledUsers           User[]  @relation("EnabledNotificationsFromUsers")
+  user                   User    @relation(fields: [userId], references: [id])
+  userId                 String  @unique @db.Uuid
+
+  @@index([userId])
 }
 
 model SMSNotificationsSettings {
-  id                          String          @id @unique @default(uuid()) @db.Uuid
-  chatterCreator              Boolean         @default(false)
-  chatterLiveEvents           Boolean         @default(false)
-  user                        User            @relation(fields: [userId], references: [id])
-  userId                      String          @unique @db.Uuid
+  id                String  @id @unique @default(uuid()) @db.Uuid
+  chatterCreator    Boolean @default(false)
+  chatterLiveEvents Boolean @default(false)
+  user              User    @relation(fields: [userId], references: [id])
+  userId            String  @unique @db.Uuid
 }
 
 model DisplayAndLanguagesSettings {
-  id                          String                @id @unique @default(uuid()) @db.Uuid
-  displayMode                 ChatterDisplayModes   @default(dark)
-  soundEffectsInRooms         Boolean               @default(false)
-  language                    ChatterLanguages      @default(english)
-  user                        User                  @relation(fields: [userId], references: [id])
-  userId                      String                @unique @db.Uuid
+  id                  String              @id @unique @default(uuid()) @db.Uuid
+  displayMode         ChatterDisplayModes @default(dark)
+  soundEffectsInRooms Boolean             @default(false)
+  language            ChatterLanguages    @default(english)
+  user                User                @relation(fields: [userId], references: [id])
+  userId              String              @unique @db.Uuid
 }
 
 model PrivacyAndSafetySettings {
-  id                            String                @id @unique @default(uuid()) @db.Uuid
-  allowNewMessagesFrom          AllowNewMessagesFrom  @default(everyone)
-  letOthersFindYouByYourEmail   Boolean               @default(false)
-  letOthersFindYouByYourPhone   Boolean               @default(false)
-  syncAddressBookContacts       Boolean               @default(false)
-  user                          User                  @relation(fields: [userId], references: [id])
-  userId                        String                @unique @db.Uuid
+  id                          String               @id @unique @default(uuid()) @db.Uuid
+  allowNewMessagesFrom        AllowNewMessagesFrom @default(everyone)
+  letOthersFindYouByYourEmail Boolean              @default(false)
+  letOthersFindYouByYourPhone Boolean              @default(false)
+  syncAddressBookContacts     Boolean              @default(false)
+  user                        User                 @relation(fields: [userId], references: [id])
+  userId                      String               @unique @db.Uuid
 }
 
 model Sharing {
-  id                      String               @id @unique @default(uuid()) @db.Uuid
-  roomId                  String?              @db.Uuid
-  momentId                String?              @db.Uuid
-  channelId               String?              @db.Uuid
-  conversationId          String?              @db.Uuid
-  profileId               String?               @db.Uuid
-  sharedByUserId          String               @db.Uuid
-  sharedWithUserId        String               @db.Uuid
-  notInterested           Boolean              @default(false)
-  room                    Room?                @relation(fields: [roomId], references: [id])
-  moment                  Moment?              @relation(fields: [momentId], references: [id])
-  channel                 Channel?             @relation(fields: [channelId], references: [id])
-  conversation            Conversation?        @relation(fields: [conversationId], references: [id])
-  profile                 User?                 @relation("profile", fields: [profileId], references: [id])
-  sharedByUser            User                 @relation("sharedByUser", fields: [sharedByUserId], references: [id])
-  sharedWithUser          User                 @relation("sharedWithUser", fields: [sharedWithUserId], references: [id])
-  created_time            DateTime
-  status                  SharingStatus        @default(unread)
+  id               String        @id @unique @default(uuid()) @db.Uuid
+  roomId           String?       @db.Uuid
+  momentId         String?       @db.Uuid
+  channelId        String?       @db.Uuid
+  conversationId   String?       @db.Uuid
+  profileId        String?       @db.Uuid
+  sharedByUserId   String        @db.Uuid
+  sharedWithUserId String        @db.Uuid
+  notInterested    Boolean       @default(false)
+  room             Room?         @relation(fields: [roomId], references: [id])
+  moment           Moment?       @relation(fields: [momentId], references: [id])
+  channel          Channel?      @relation(fields: [channelId], references: [id])
+  conversation     Conversation? @relation(fields: [conversationId], references: [id])
+  profile          User?         @relation("profile", fields: [profileId], references: [id])
+  sharedByUser     User          @relation("sharedByUser", fields: [sharedByUserId], references: [id])
+  sharedWithUser   User          @relation("sharedWithUser", fields: [sharedWithUserId], references: [id])
+  created_time     DateTime
+  status           SharingStatus @default(unread)
+
   @@index([sharedWithUserId, status, notInterested, created_time])
 }
 
@@ -334,58 +348,58 @@ model Feedback {
 }
 
 model DmsMessageReports {
-  id          String               @id @default(uuid()) @db.Uuid
-  message_id  String               @db.Uuid
-  sender_id   String               @db.Uuid
-  message     DirectMessage        @relation(fields: [message_id], references: [id])
-  sender      User                 @relation(fields: [sender_id], references: [id])
-  reason      UserReportReasonType
+  id          String        @id @default(uuid()) @db.Uuid
+  message_id  String        @db.Uuid
+  sender_id   String        @db.Uuid
+  message     DirectMessage @relation(fields: [message_id], references: [id])
+  sender      User          @relation(fields: [sender_id], references: [id])
+  reason      String
   explanation String
-  created     DateTime             @default(now())
+  created     DateTime      @default(now())
 }
 
 model RoomMessageReports {
-  id          String               @id @default(uuid()) @db.Uuid
-  message_id  String               @db.Uuid
-  sender_id   String               @db.Uuid
-  message     RoomChatMessages     @relation(fields: [message_id], references: [id])
-  sender      User                 @relation(fields: [sender_id], references: [id])
-  reason      UserReportReasonType
+  id          String           @id @default(uuid()) @db.Uuid
+  message_id  String           @db.Uuid
+  sender_id   String           @db.Uuid
+  message     RoomChatMessages @relation(fields: [message_id], references: [id])
+  sender      User             @relation(fields: [sender_id], references: [id])
+  reason      String
   explanation String
-  created     DateTime             @default(now())
+  created     DateTime         @default(now())
 }
 
 model RoomReports {
-  id          String               @id @default(uuid()) @db.Uuid
-  room_id     String               @db.Uuid
-  sender_id   String               @db.Uuid
-  room        Room                 @relation(fields: [room_id], references: [id])
-  sender      User                 @relation(fields: [sender_id], references: [id])
-  reason      RoomReportReasonType
+  id          String   @id @default(uuid()) @db.Uuid
+  room_id     String   @db.Uuid
+  sender_id   String   @db.Uuid
+  room        Room     @relation(fields: [room_id], references: [id])
+  sender      User     @relation(fields: [sender_id], references: [id])
+  reason      String
   explanation String
-  created     DateTime             @default(now())
+  created     DateTime @default(now())
 }
 
 model ConversationReports {
-  id              String               @id @default(uuid()) @db.Uuid
-  conversation_id String               @db.Uuid
-  sender_id       String               @db.Uuid
-  conversation    Conversation         @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
-  sender          User                 @relation(fields: [sender_id], references: [id], onDelete: Cascade)
-  reason          RoomReportReasonType
+  id              String       @id @default(uuid()) @db.Uuid
+  conversation_id String       @db.Uuid
+  sender_id       String       @db.Uuid
+  conversation    Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  sender          User         @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+  reason          String
   explanation     String
-  created         DateTime             @default(now())
+  created         DateTime     @default(now())
 }
 
 model ChannelReports {
-  id          String               @id @default(uuid()) @db.Uuid
-  channel_id  String               @db.Uuid
-  sender_id   String               @db.Uuid
-  channel     Channel              @relation(fields: [channel_id], references: [id])
-  sender      User                 @relation(fields: [sender_id], references: [id])
-  reason      RoomReportReasonType
+  id          String   @id @default(uuid()) @db.Uuid
+  channel_id  String   @db.Uuid
+  sender_id   String   @db.Uuid
+  channel     Channel  @relation(fields: [channel_id], references: [id])
+  sender      User     @relation(fields: [sender_id], references: [id])
+  reason      String
   explanation String
-  created     DateTime             @default(now())
+  created     DateTime @default(now())
 }
 
 model UserBlocks {
@@ -396,25 +410,26 @@ model UserBlocks {
   blocked_by User   @relation("blocked_by", fields: [blocker], references: [id])
 
   @@unique([blocked, blocker])
+  @@index([blocked, blocker])
 }
 
 model UserMutedAccounts {
-  id                String  @id @default(uuid()) @db.Uuid
-  mutedUserId       String  @db.Uuid
-  mutedByUserId     String  @db.Uuid
-  mutedUser         User    @relation("mutedUser", fields: [mutedUserId], references: [id])
-  mutedByUser       User    @relation("mutedByUser", fields: [mutedByUserId], references: [id])
+  id            String @id @default(uuid()) @db.Uuid
+  mutedUserId   String @db.Uuid
+  mutedByUserId String @db.Uuid
+  mutedUser     User   @relation("mutedUser", fields: [mutedUserId], references: [id])
+  mutedByUser   User   @relation("mutedByUser", fields: [mutedByUserId], references: [id])
 }
 
 model UserReports {
-  id                 String               @id @default(uuid()) @db.Uuid
-  report_receiver_id String               @db.Uuid
-  report_sender_id   String               @db.Uuid
-  report_receiver    User                 @relation("report_receiver", fields: [report_receiver_id], references: [id])
-  report_sender      User                 @relation("report_sender", fields: [report_sender_id], references: [id])
-  reason             UserReportReasonType
+  id                 String   @id @default(uuid()) @db.Uuid
+  report_receiver_id String   @db.Uuid
+  report_sender_id   String   @db.Uuid
+  report_receiver    User     @relation("report_receiver", fields: [report_receiver_id], references: [id])
+  report_sender      User     @relation("report_sender", fields: [report_sender_id], references: [id])
+  reason             String
   explanation        String
-  created            DateTime             @default(now())
+  created            DateTime @default(now())
 }
 
 model UserPushDevices {
@@ -425,19 +440,22 @@ model UserPushDevices {
   target_arn String
   user       User     @relation(fields: [user_id], references: [id])
   platform   String // ios / android
+
+  @@index([user_id])
 }
 
 model UserFollows {
-  id               String  @id @default(uuid()) @db.Uuid
-  follower_user_id String  @db.Uuid
-  followee_user_id String  @db.Uuid
-  is_following     Boolean @default(true)
-  followee         User    @relation("following_user_id", fields: [followee_user_id], references: [id])
-  follower         User    @relation("follower_user_id", fields: [follower_user_id], references: [id])
+  id               String   @id @default(uuid()) @db.Uuid
+  follower_user_id String   @db.Uuid
+  followee_user_id String   @db.Uuid
+  is_following     Boolean  @default(true)
+  followee         User     @relation("following_user_id", fields: [followee_user_id], references: [id])
+  follower         User     @relation("follower_user_id", fields: [follower_user_id], references: [id])
   created_at       DateTime @default(now())
 
   @@unique([follower_user_id, followee_user_id])
-  @@index([follower_user_id, followee_user_id])
+  @@index([follower_user_id])
+  @@index([followee_user_id])
 }
 
 model Contributions {
@@ -459,36 +477,40 @@ model ObjectMedia {
 }
 
 model UserProfileSocials {
-  id               String @id @unique @default(uuid()) @db.Uuid
-  user_id          String @db.Uuid
-  platform         SocialPlatforms @default(instagram)
-  slug             String
-  user             User   @relation(fields: [user_id], references: [id])
+  id       String          @id @unique @default(uuid()) @db.Uuid
+  user_id  String          @db.Uuid
+  platform SocialPlatforms @default(instagram)
+  slug     String
+  user     User            @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
 }
 
 model Channel {
-  id                String             @id @unique @default(uuid()) @db.Uuid
-  owner_id          String             @db.Uuid
-  name              String?            @default("New Channel") @unique
-  description       String?            @default("new channel")
+  id                String               @id @unique @default(uuid()) @db.Uuid
+  owner_id          String               @db.Uuid
+  name              String?              @unique @default("New Channel")
+  description       String?              @default("new channel")
   audio_description String?
   caption_url       String?
   duration          String?
   avatar            String?
   banner            String?
-  created_at        DateTime           @default(now())
-  owner             User               @relation(fields: [owner_id], references: [id])
-  followers         ChannelFollowers[] @relation("followee_channel_id")
+  created_at        DateTime             @default(now())
+  owner             User                 @relation(fields: [owner_id], references: [id])
+  followers         ChannelFollowers[]   @relation("followee_channel_id")
   channel_report    ChannelReports[]
   channel_topics    ChannelTopic[]
-  owner_of_rooms    Room[]             @relation("channel_as_owner")
+  owner_of_rooms    Room[]               @relation("channel_as_owner")
   channel_requests  ChannelRequests[]
   channel_admins    ChannelAdmins[]
   channel_leaders   ChannelLeaders[]
   subscription      ChannelSubscription?
   shared_channels   Sharing[]
   subscribers       ChannelSubscribers[]
-  deleted           Boolean            @default(false)
+  deleted           Boolean              @default(false)
+
+  @@index([owner_id])
 }
 
 enum SubscribedStore {
@@ -497,54 +519,56 @@ enum SubscribedStore {
 }
 
 model ChannelSubscribers {
-  id                String @id @default(uuid()) @db.Uuid
-  channel_id        String @db.Uuid
-  user_id           String @db.Uuid
-  subscription_id   String @db.Uuid
-  created_at        DateTime
-  active            Boolean @default(true)
-  platform          SubscribedStore
-  channel           Channel @relation(fields: [channel_id], references: [id], onDelete: Cascade)
-  user              User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  subscription      ChannelSubscription @relation(fields: [subscription_id], references: [id])
+  id              String              @id @default(uuid()) @db.Uuid
+  channel_id      String              @db.Uuid
+  user_id         String              @db.Uuid
+  subscription_id String              @db.Uuid
+  created_at      DateTime
+  active          Boolean             @default(true)
+  platform        SubscribedStore
+  channel         Channel             @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  user            User                @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  subscription    ChannelSubscription @relation(fields: [subscription_id], references: [id])
 }
 
 model ChannelSubscription {
-  id                        String      @id @default(uuid()) @db.Uuid
-  ios_status                String?
-  android_status            String?
-  ios_subscription_id       String?
-  android_subscription_id   String?
-  created_at                DateTime    @default(now())
-  channel_id                String?     @db.Uuid @unique
-  channel                   Channel?    @relation(fields: [channel_id], references: [id])
-  enabled                   Boolean
-  price                     Float
-  subscribed_users          ChannelSubscribers[]
-  description               String?
-  perks                     String?
- }
+  id                      String               @id @default(uuid()) @db.Uuid
+  ios_status              String?
+  android_status          String?
+  ios_subscription_id     String?
+  android_subscription_id String?
+  created_at              DateTime             @default(now())
+  channel_id              String?              @unique @db.Uuid
+  channel                 Channel?             @relation(fields: [channel_id], references: [id])
+  enabled                 Boolean
+  price                   Float
+  subscribed_users        ChannelSubscribers[]
+  description             String?
+  perks                   String?
+}
 
 model ChannelFollowers {
-  id                  String  @id @default(uuid()) @db.Uuid
-  is_following        Boolean @default(true)
-  follower_user_id    String  @db.Uuid
-  followee_channel_id String  @db.Uuid
-  created_at          DateTime    @default(now())
-  channel             Channel @relation("followee_channel_id", fields: [followee_channel_id], references: [id], onDelete: Cascade)
-  follower            User    @relation("follower_user_id", fields: [follower_user_id], references: [id])
+  id                  String   @id @default(uuid()) @db.Uuid
+  is_following        Boolean  @default(true)
+  follower_user_id    String   @db.Uuid
+  followee_channel_id String   @db.Uuid
+  created_at          DateTime @default(now())
+  channel             Channel  @relation("followee_channel_id", fields: [followee_channel_id], references: [id], onDelete: Cascade)
+  follower            User     @relation("follower_user_id", fields: [follower_user_id], references: [id])
 
   @@unique([follower_user_id, followee_channel_id])
+  @@index([follower_user_id])
+  @@index([followee_channel_id])
 }
 
 model SocialLogin {
-  id          String @id @default(uuid()) @db.Uuid
-  user_id     String @db.Uuid
-  provider    String
-  provider_id String
+  id                   String  @id @default(uuid()) @db.Uuid
+  user_id              String  @db.Uuid
+  provider             String
+  provider_id          String
   provider_transfer_id String?
-  provider_id_updated Boolean @default(false)
-  user        User   @relation(fields: [user_id], references: [id])
+  provider_id_updated  Boolean @default(false)
+  user                 User    @relation(fields: [user_id], references: [id])
 
   @@index([user_id], type: Hash)
 }
@@ -557,6 +581,7 @@ model Notification {
   seen           Boolean  @default(false)
   target_user_id String   @db.Uuid
   user           User     @relation(fields: [target_user_id], references: [id])
+
   @@index([target_user_id, seen])
 }
 
@@ -568,6 +593,8 @@ model RoomInvitedCoHosts {
   invite_accepted_at DateTime?
   room               Room      @relation(fields: [room_id], references: [id])
   user               User      @relation(fields: [user_id], references: [id])
+
+  @@index([room_id, user_id])
 }
 
 model RoomJoinedCoHosts {
@@ -577,68 +604,92 @@ model RoomJoinedCoHosts {
   joined_at DateTime?
   room      Room      @relation(fields: [room_id], references: [id])
   user      User      @relation(fields: [user_id], references: [id])
+
+  @@index([room_id, user_id])
+}
+
+model ChatterFeedAlgorithmWeights {
+  id          String  @id @default(uuid()) @db.Uuid
+  weight_name String
+  weight_slug String  @unique
+  weightage   Decimal @db.Decimal(10, 2)
 }
 
 model Room {
-  id                   String                @id @default(uuid()) @db.Uuid
-  type                 RoomType              @default(instant)
-  mature_content       Boolean               @default(false)
-  video_egress_started Boolean               @default(false)
-  access               String
-  chat_enabled         Boolean               @default(true)
-  created_at           DateTime
-  ended_at             DateTime?
-  recording_enabled    Boolean               @default(false)
-  started_at           DateTime?
-  thumbnail            String?
-  title                String
-  owner_of_room        OwnerType             @default(user)
-  user_owner_id        String?               @db.Uuid
-  user_as_owner        User?                 @relation("user_as_owner", fields: [user_owner_id], references: [id], onDelete: Cascade)
-  channel_owner_id     String?               @db.Uuid
-  channel_as_owner     Channel?              @relation("channel_as_owner", fields: [channel_owner_id], references: [id], onDelete: Cascade)
-  status               RoomStatus            @default(ended)
-  invited_users        Json[]
-  invited_speakers     RoomInvitedSpeakers[]
-  scheduled_start_time DateTime?
-  description          String?               @default("new room")
-  host_id              String                @db.Uuid
-  host                 User                  @relation("host", fields: [host_id], references: [id], onDelete: Cascade)
-  host_last_left_at    DateTime?
-  chat_messages        RoomChatMessages[]
-  listeners            RoomListeners[]
-  participants         RoomParicipants[]     @relation("RoomParticipants")
-  room_topics          RoomTopic[]
-  removed_users        RemovedFromRooms[]
-  polls                RoomPoll[]
-  pinned_links         RoomPinnedLinks[]
-  contributions        Contributions[]
-  room_report          RoomReports[]
-  moments              Moment[]
-  room_invited_cohosts RoomInvitedCoHosts[]
-  room_joined_cohosts  RoomJoinedCoHosts[]
-  spotlight            Spotlight[]
-  hand_raising_permission String @default("everyone")
-  share_video_permission String @default("everyone")
-  rsvped_users         User[]
-  room_attendance      RoomAttendance[]
-  room_muted           Boolean @default(false)
-  shared_rooms         Sharing[]
-  video_participants   RoomVideoParticipants[]
-  server_node_id       String @db.Uuid @default("dc2fe3da-f88c-4c87-addb-195b87e24b1d")
-  server_node          MediaServerNode @relation(fields: [server_node_id], references: [id])
-  studio_mode_enabled  Boolean @default(false)
-  listener_count       Int @default(0)
-  participant_count    Int @default(0)
+  id                      String                  @id @default(uuid()) @db.Uuid
+  type                    RoomType                @default(instant)
+  mature_content          Boolean                 @default(false)
+  video_egress_started    Boolean                 @default(false)
+  access                  String
+  chat_enabled            Boolean                 @default(true)
+  created_at              DateTime
+  ended_at                DateTime?
+  recording_enabled       Boolean                 @default(false)
+  started_at              DateTime?
+  thumbnail               String?
+  title                   String
+  owner_of_room           OwnerType               @default(user)
+  user_owner_id           String?                 @db.Uuid
+  user_as_owner           User?                   @relation("user_as_owner", fields: [user_owner_id], references: [id], onDelete: Cascade)
+  channel_owner_id        String?                 @db.Uuid
+  channel_as_owner        Channel?                @relation("channel_as_owner", fields: [channel_owner_id], references: [id], onDelete: Cascade)
+  status                  RoomStatus              @default(ended)
+  invited_users           Json[]
+  invited_speakers        RoomInvitedSpeakers[]
+  scheduled_start_time    DateTime?
+  description             String?                 @default("new room")
+  host_id                 String                  @db.Uuid
+  host                    User                    @relation("host", fields: [host_id], references: [id], onDelete: Cascade)
+  host_last_left_at       DateTime?
+  chat_messages           RoomChatMessages[]
+  listeners               RoomListeners[]
+  participants            RoomParicipants[]       @relation("RoomParticipants")
+  room_topics             RoomTopic[]
+  removed_users           RemovedFromRooms[]
+  polls                   RoomPoll[]
+  pinned_links            RoomPinnedLinks[]
+  contributions           Contributions[]
+  room_report             RoomReports[]
+  moments                 Moment[]
+  room_invited_cohosts    RoomInvitedCoHosts[]
+  room_joined_cohosts     RoomJoinedCoHosts[]
+  spotlight               Spotlight[]
+  hand_raising_permission String                  @default("everyone")
+  share_video_permission  String                  @default("everyone")
+  rsvped_users            User[]
+  room_attendance         RoomAttendance[]
+  room_muted              Boolean                 @default(false)
+  shared_rooms            Sharing[]
+  video_participants      RoomVideoParticipants[]
+  server_node_id          String                  @default("dc2fe3da-f88c-4c87-addb-195b87e24b1d") @db.Uuid
+  server_node             MediaServerNode         @relation(fields: [server_node_id], references: [id])
+  studio_mode_enabled     Boolean                 @default(false)
+  listener_count          Int                     @default(0)
+  participant_count       Int                     @default(0)
+  deleted                 Boolean                 @default(false)
+  roomRating              RoomRatings?            @relation(fields: [roomRatingId], references: [id])
+  roomRatingId            String?                 @db.Uuid
+
   @@index([id, status, host_id])
+  @@index([status])
+  @@index([host_id])
+}
+
+model RoomRatings {
+  id             String @id @default(uuid()) @db.Uuid
+  name           String
+  classification String
+  description    String @default("description")
+  rooms          Room[]
+  sort_order     Int    @default(1)
 }
 
 model MediaServerNode {
-  id         String   @id @default(uuid()) @db.Uuid
-  created_at DateTime @default(now())
+  id         String       @id @default(uuid()) @db.Uuid
+  created_at DateTime     @default(now())
   removed_at DateTime?
-  active     Boolean  @default(true)
-  region_id  String   @db.Uuid @default("e1794452-7f79-4a1a-83c2-7ab4daabab81")
+  active     Boolean      @default(true)
+  region_id  String       @default("e1794452-7f79-4a1a-83c2-7ab4daabab81") @db.Uuid
   region     ServerRegion @relation(fields: [region_id], references: [id], onDelete: NoAction)
   ip_address String
   hostname   String
@@ -646,34 +697,39 @@ model MediaServerNode {
 }
 
 model ServerRegion {
-  id          String   @id @default(uuid()) @db.Uuid
-  enabled     Boolean  @default(true)
-  created_at  DateTime @default(now())
-  provider    String   @default("aws")
-  region      String
-  name        String
-  test_ips    Json[]
+  id                 String            @id @default(uuid()) @db.Uuid
+  enabled            Boolean           @default(true)
+  created_at         DateTime          @default(now())
+  provider           String            @default("aws")
+  region             String
+  name               String
+  test_ips           Json[]
   media_server_nodes MediaServerNode[]
 }
 
 model RoomVideoParticipants {
-  id          String    @id @default(uuid()) @db.Uuid
-  created_at  DateTime  @default(now())
-  track_sid   String    @unique
-  room_id     String    @db.Uuid
-  user_id     String    @db.Uuid
-  room        Room      @relation(fields: [room_id], references: [id])
-  user        User      @relation(fields: [user_id], references: [id])
-  track       Json
+  id         String   @id @default(uuid()) @db.Uuid
+  created_at DateTime @default(now())
+  track_sid  String   @unique
+  room_id    String   @db.Uuid
+  user_id    String   @db.Uuid
+  room       Room     @relation(fields: [room_id], references: [id])
+  user       User     @relation(fields: [user_id], references: [id])
+  track      Json
+
+  @@index([room_id])
 }
 
 model RoomAttendance {
-  id           String     @id @default(uuid()) @db.Uuid
-  room_id      String     @db.Uuid
-  room         Room       @relation(fields: [room_id], references: [id], onDelete: Cascade)
-  user_id      String     @db.Uuid
-  user         User       @relation(fields: [user_id], references: [id])
-  created_at   DateTime   @default(now())
+  id         String   @id @default(uuid()) @db.Uuid
+  room_id    String   @db.Uuid
+  room       Room     @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  user_id    String   @db.Uuid
+  user       User     @relation(fields: [user_id], references: [id])
+  created_at DateTime @default(now())
+
+  @@index([room_id])
+  @@index([user_id])
 }
 
 model RoomStateEvents {
@@ -685,26 +741,26 @@ model RoomStateEvents {
 }
 
 model Moment {
-  id              String           @id @default(uuid()) @db.Uuid
-  room_id         String           @db.Uuid
-  creator_id      String           @db.Uuid
-  created_at      DateTime         @default(now())
-  title           String
-  audio_url       String
-  captions_url    String
-  duration        BigInt
-  program_start   BigInt
-  program_end     BigInt
-  participants    User[]           @relation("MomentParticipants")
-  room            Room             @relation(fields: [room_id], references: [id])
-  creator         User             @relation("CreatedMoments", fields: [creator_id], references: [id])
-  moment_topics   MomentTopic[]
-  moment_likes    MomentLikes[]
-  moment_like_count Int @default(20)
-  moment_views    MomentViews[]
-  moment_view_count Int @default(30)
-  moment_comments MomentComments[]
-  shared_moments  Sharing[]
+  id                String           @id @default(uuid()) @db.Uuid
+  room_id           String           @db.Uuid
+  creator_id        String           @db.Uuid
+  created_at        DateTime         @default(now())
+  title             String
+  audio_url         String
+  captions_url      String
+  duration          BigInt
+  program_start     BigInt
+  program_end       BigInt
+  participants      User[]           @relation("MomentParticipants")
+  room              Room             @relation(fields: [room_id], references: [id])
+  creator           User             @relation("CreatedMoments", fields: [creator_id], references: [id])
+  moment_topics     MomentTopic[]
+  moment_likes      MomentLikes[]
+  moment_like_count Int              @default(20)
+  moment_views      MomentViews[]
+  moment_view_count Int              @default(30)
+  moment_comments   MomentComments[]
+  shared_moments    Sharing[]
 }
 
 model MomentLikes {
@@ -777,6 +833,8 @@ model RoomPinnedLinks {
   created_at DateTime
   room       Room     @relation(fields: [room_id], references: [id])
   user       User     @relation(fields: [user_id], references: [id])
+
+  @@index([room_id])
 }
 
 model RoomInvitedSpeakers {
@@ -788,6 +846,8 @@ model RoomInvitedSpeakers {
   user          User     @relation("InvitedSpeakerInRooms", fields: [user_id], references: [id])
   invited_by_id String   @db.Uuid
   invited_by    User     @relation("InvitedBy", fields: [invited_by_id], references: [id])
+
+  @@index([room_id])
 }
 
 model RemovedFromRooms {
@@ -811,37 +871,43 @@ model RoomRequests {
   approved   Boolean?
   permission Json
   user       User     @relation(fields: [user_id], references: [id])
+
+  @@index([room_id])
 }
 
 model ChannelRequests {
-  id            String   @id @default(uuid()) @db.Uuid
-  channel_id    String   @db.Uuid
-  recipient_id  String   @db.Uuid
-  sender_id     String   @db.Uuid
-  created_at    DateTime
-  approved      Boolean?
-  status        String
-  channel       Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
-  sender        User     @relation("sender", fields: [sender_id], references: [id], onDelete: Cascade)
-  recipient     User     @relation("recipient", fields: [recipient_id], references: [id], onDelete: Cascade)
+  id           String   @id @default(uuid()) @db.Uuid
+  channel_id   String   @db.Uuid
+  recipient_id String   @db.Uuid
+  sender_id    String   @db.Uuid
+  created_at   DateTime
+  approved     Boolean?
+  status       String
+  channel      Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  sender       User     @relation("sender", fields: [sender_id], references: [id], onDelete: Cascade)
+  recipient    User     @relation("recipient", fields: [recipient_id], references: [id], onDelete: Cascade)
 }
 
 model ChannelAdmins {
-   id            String   @id @default(uuid()) @db.Uuid
-   channel_id    String   @db.Uuid
-   user_id       String   @db.Uuid
-   created_at    DateTime
-   channel       Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
-   user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid()) @db.Uuid
+  channel_id String   @db.Uuid
+  user_id    String   @db.Uuid
+  created_at DateTime
+  channel    Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([channel_id, user_id])
 }
 
 model ChannelLeaders {
-   id            String   @id @default(uuid()) @db.Uuid
-   channel_id    String   @db.Uuid
-   user_id       String   @db.Uuid
-   created_at    DateTime
-   channel       Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
-   user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid()) @db.Uuid
+  channel_id String   @db.Uuid
+  user_id    String   @db.Uuid
+  created_at DateTime
+  channel    Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([channel_id, user_id])
 }
 
 model RoomPoll {
@@ -855,6 +921,8 @@ model RoomPoll {
   votes      RoomPollVotes[]
   created_by String          @db.Uuid
   creator    User            @relation(fields: [created_by], references: [id])
+
+  @@index([room_id])
 }
 
 model RoomPollVotes {
@@ -864,18 +932,30 @@ model RoomPollVotes {
   option    Int
   room_poll RoomPoll @relation(fields: [poll_id], references: [id])
   user      User     @relation(fields: [user_id], references: [id])
+
+  @@index([poll_id])
 }
 
 model Topic {
-  id              String            @id @default(uuid()) @db.Uuid
-  title           String
-  parentTopic     Topic?            @relation("ParentTopic", fields: [parentTopicId], references: [id])
-  parentTopicId   String?           @db.Uuid
-  subtopics       Topic[]           @relation("ParentTopic")
-  room_topics     RoomTopic[]
-  channel_topics  ChannelTopic[]
-  moment_topics   MomentTopic[]
-  users           User[]            @relation("TopicToUser")
+  id             String           @id @default(uuid()) @db.Uuid
+  title          String
+  parentTopic    Topic?           @relation("ParentTopic", fields: [parentTopicId], references: [id])
+  parentTopicId  String?          @db.Uuid
+  active         Boolean          @default(false)
+  subtopics      Topic[]          @relation("ParentTopic")
+  room_topics    RoomTopic[]
+  channel_topics ChannelTopic[]
+  moment_topics  MomentTopic[]
+  users          User[]           @relation("TopicToUser")
+  categories     TopicsCategory[] @relation("TopicToCategory")
+
+  @@index([parentTopicId])
+}
+
+model TopicsCategory {
+  id     String  @id @default(uuid()) @db.Uuid
+  name   String
+  topics Topic[] @relation("TopicToCategory")
 }
 
 model RoomTopic {
@@ -884,6 +964,8 @@ model RoomTopic {
   topic_id String @db.Uuid
   room     Room   @relation(fields: [room_id], references: [id], onDelete: Cascade)
   topic    Topic  @relation(fields: [topic_id], references: [id])
+
+  @@index([room_id, topic_id])
 }
 
 model ChannelTopic {
@@ -892,6 +974,8 @@ model ChannelTopic {
   topic_id   String  @db.Uuid
   channel    Channel @relation(fields: [channel_id], references: [id], onDelete: Cascade)
   topic      Topic   @relation(fields: [topic_id], references: [id], onDelete: Cascade)
+
+  @@index([channel_id])
 }
 
 model MomentTopic {
@@ -913,6 +997,8 @@ model RoomListeners {
   is_listening Boolean
   room         Room      @relation(fields: [room_id], references: [id])
   user         User      @relation(fields: [user_id], references: [id])
+
+  @@index([room_id, is_listening])
 }
 
 model RoomParicipants {
@@ -924,10 +1010,14 @@ model RoomParicipants {
   joined_at    DateTime
   left_at      DateTime?
   is_listening Boolean
-  hand_raised  Boolean  @default(false)
+  hand_raised  Boolean   @default(false)
   room         Room      @relation("RoomParticipants", fields: [room_id], references: [id])
   user         User      @relation("RoomParticipants", fields: [user_id], references: [id])
   active       Boolean   @default(true)
+
+  @@index([room_id, user_id, active])
+  @@index([room_id, active])
+  @@index([user_id, active])
 }
 
 model RoomChatMessages {
@@ -943,7 +1033,7 @@ model RoomChatMessages {
   user             User                 @relation(fields: [user_id], references: [id])
   reported_message RoomMessageReports[]
 
-  @@index([room_id], map: "room_id")
+  @@index([room_id])
 }
 
 model DMBox {
@@ -954,6 +1044,8 @@ model DMBox {
   users_to_dmbox DMBoxToUser[]
   messages       DirectMessage[]
   participants   User[]          @relation("DMBoxToUser")
+
+  @@index([owner_id])
 }
 
 model DirectMessage {
@@ -964,32 +1056,33 @@ model DirectMessage {
   sender_id         String              @db.Uuid
   dmbox             DMBox               @relation(fields: [dmbox_id], references: [id], onDelete: Cascade)
   sender            User                @relation(fields: [sender_id], references: [id], onDelete: Cascade)
-  type              String              @default("text")
+  type              DMType              @default(text)
   is_deleted_for_me Boolean             @default(false)
   reported_message  DmsMessageReports[]
   status            MessageStatus       @default(unread)
 
-  @@index([dmbox_id], map: "dmbox_id")
+  @@index([dmbox_id])
+  @@index([sender_id])
 }
 
 model Spotlight {
-  id                    String   @id @default(uuid()) @db.Uuid
-  room_id               String   @db.Uuid
-  created_at            DateTime
-  room                  Room     @relation(fields: [room_id], references: [id])
-  background_image_url  String
-  title                 String
-  description           String
+  id                   String   @id @default(uuid()) @db.Uuid
+  room_id              String   @db.Uuid
+  created_at           DateTime
+  room                 Room     @relation(fields: [room_id], references: [id])
+  background_image_url String
+  title                String
+  description          String
 }
 
 model MultistreamEndpoints {
-  id          String                      @id @default(uuid()) @db.Uuid
-  user_id     String                      @db.Uuid
-  user        User                        @relation(fields: [user_id], references: [id])
-  platform    MultiStreamingPlatforms     @default(facebook)
-  stream_key  String
-  enabled     Boolean                     @default(false)
-  status      MultistreamingStatus        @default(active)
+  id         String                  @id @default(uuid()) @db.Uuid
+  user_id    String                  @db.Uuid
+  user       User                    @relation(fields: [user_id], references: [id])
+  platform   MultiStreamingPlatforms @default(facebook)
+  stream_key String
+  enabled    Boolean                 @default(false)
+  status     MultistreamingStatus    @default(active)
 }
 
 model DMBoxToUser {
@@ -999,6 +1092,8 @@ model DMBoxToUser {
   user     User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@id([user_id, dmbox_id])
+  @@index([user_id])
+  @@index([dmbox_id])
 }
 
 model Registration {
@@ -1016,25 +1111,28 @@ model Registration {
 }
 
 model Conversation {
-  id                  String                  @id @default(uuid()) @db.Uuid
-  title               String
-  audio_message       String
-  caption_url         String?
-  image               String?
-  link                Json?
-  duration            String?
-  created             DateTime                @default(now())
-  updatedAt           DateTime                @default(now())
-  owner_id            String                  @db.Uuid
-  owner               User                    @relation(fields: [owner_id], references: [id], onDelete: Cascade)
-  status              String                  @default("active")
-  users_reply         ConversationReply[]
-  users_likes         ConversationLikes[]
-  users_views         ConversationViews[]
-  reply_restriction   ReplyRestrictionType    @default(all)
-  users_reactions     ConversationReactions[]
-  conversation_report ConversationReports[]
-  shared_conversations      Sharing[]
+  id                   String                  @id @default(uuid()) @db.Uuid
+  title                String
+  audio_message        String
+  caption_url          String?
+  image                String?
+  link                 Json?
+  duration             String?
+  created              DateTime                @default(now())
+  updatedAt            DateTime                @default(now())
+  owner_id             String                  @db.Uuid
+  owner                User                    @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  status               String                  @default("active")
+  users_reply          ConversationReply[]
+  users_likes          ConversationLikes[]
+  users_views          ConversationViews[]
+  reply_restriction    ReplyRestrictionType    @default(all)
+  users_reactions      ConversationReactions[]
+  conversation_report  ConversationReports[]
+  shared_conversations Sharing[]
+
+  @@index([owner_id])
+  @@index([created])
 }
 
 model ConversationReply {
@@ -1049,6 +1147,9 @@ model ConversationReply {
   duration        String?
   created         DateTime                 @default(now())
   reply_likes     ConversationReplyLikes[]
+
+  @@index([conversation_id])
+  @@index([created])
 }
 
 model ConversationReplyViews {
@@ -1058,6 +1159,8 @@ model ConversationReplyViews {
   reply_id String            @db.Uuid
   reply    ConversationReply @relation(fields: [reply_id], references: [id], onDelete: Cascade)
   created  DateTime          @default(now())
+
+  @@index([reply_id])
 }
 
 model ConversationReplyLikes {
@@ -1067,6 +1170,8 @@ model ConversationReplyLikes {
   reply_id String            @db.Uuid
   reply    ConversationReply @relation(fields: [reply_id], references: [id], onDelete: Cascade)
   created  DateTime          @default(now())
+
+  @@index([reply_id])
 }
 
 model ConversationLikes {
@@ -1076,6 +1181,8 @@ model ConversationLikes {
   conversation_id String       @db.Uuid
   conversation    Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
   created         DateTime     @default(now())
+
+  @@index([conversation_id])
 }
 
 model ConversationViews {
@@ -1085,6 +1192,8 @@ model ConversationViews {
   conversation_id String       @db.Uuid
   conversation    Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
   created         DateTime     @default(now())
+
+  @@index([conversation_id])
 }
 
 model ConversationReactions {
@@ -1095,6 +1204,8 @@ model ConversationReactions {
   conversation    Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
   reaction        String
   created         DateTime     @default(now())
+
+  @@index([conversation_id])
 }
 
 model PasswordResetRequest {
@@ -1107,15 +1218,24 @@ model PasswordResetRequest {
 }
 
 enum PlatformMetric {
-ONLINE_USERS
-ACTIVE_ROOMS
-SCHEDULED_ROOMS
-REGISTERED_USERS
+  ONLINE_USERS
+  ACTIVE_ROOMS
+  SCHEDULED_ROOMS
+  REGISTERED_USERS
 }
 
 model PlatformStat {
+  id        String         @id @default(uuid()) @db.Uuid
+  metric    PlatformMetric
+  value     Int
+  timestamp DateTime       @default(now())
+
+  @@index([timestamp])
+  @@index([metric])
+}
+
+model UpdatedIOSUsers {
   id         String   @id @default(uuid()) @db.Uuid
-  metric     PlatformMetric
-  value      Int
-  timestamp  DateTime @default(now())
+  user_id    String   @unique @db.Uuid
+  updated_at DateTime @default(now())
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"sort"
 	"time"
 
@@ -63,7 +64,7 @@ func fetchLiveRooms(client *db.PrismaClient, ctx context.Context) {
 
 	for _, room := range rooms {
 
-		baseURL := "http://" emqxHost + ":" + emqxPort + "/api/v5/subscriptions?topic=room/%s/listener&limit=1"
+		baseURL := "http://" + emqxHost + ":" + emqxPort + "/api/v5/subscriptions?topic=room/%s/listener&limit=1"
 		url := fmt.Sprintf(baseURL, room.Name)
 		listenerCount, err := fetchURL(url)
 		if err != nil {
@@ -88,8 +89,6 @@ func fetchEgress() {
 	hostURL := os.Getenv("LIVEKIT_HOST")
 	apiKey := os.Getenv("LIVEKIT_API_KEY")
 	apiSecret := os.Getenv("LIVEKIT_API_KEY_SECRET")
-	emqxHost := os.Getenv("EMQX_HOST")
-	emqxPort := os.Getenv("EMQX_PORT")
 
 	egressClient := lksdk.NewEgressClient(hostURL, apiKey, apiSecret)
 
