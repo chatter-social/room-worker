@@ -38,8 +38,7 @@ func fetchLiveRooms(client *db.PrismaClient, ctx context.Context) {
 	hostURL := os.Getenv("LIVEKIT_HOST")
 	apiKey := os.Getenv("LIVEKIT_API_KEY")
 	apiSecret := os.Getenv("LIVEKIT_API_KEY_SECRET")
-	emqxHost := os.Getenv("EMQX_HOST")
-	emqxPort := os.Getenv("EMQX_PORT")
+	emqxUrl := os.Getenv("EMQX_URL")
 
 	roomClient := lksdk.NewRoomServiceClient(hostURL, apiKey, apiSecret)
 
@@ -64,7 +63,7 @@ func fetchLiveRooms(client *db.PrismaClient, ctx context.Context) {
 
 	for _, room := range rooms {
 
-		baseURL := "http://" + emqxHost + ":" + emqxPort + "/api/v5/subscriptions?topic=room/%s/listener&limit=1"
+		baseURL := "http://" + emqxUrl + "/api/v5/subscriptions?topic=room/%s/listener&limit=1"
 		url := fmt.Sprintf(baseURL, room.Name)
 		listenerCount, err := fetchURL(url)
 		if err != nil {
@@ -138,6 +137,9 @@ func main() {
 }
 
 func fetchURL(url string) (int, error) {
+	emqxUsername := os.Getenv("EMQX_USERNAME")
+	emqxPassword := os.Getenv("EMQX_PASSWORD")
+
 	// Create a new HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -146,7 +148,7 @@ func fetchURL(url string) (int, error) {
 	}
 
 	// Encode the username and password in Base64
-	auth := base64.StdEncoding.EncodeToString([]byte("43c6fffaa75a48fd" + ":" + "TwcB2mve9C35ke2ghHRJ5uRWvAzlFZGqgcowp9BPCZE1A"))
+	auth := base64.StdEncoding.EncodeToString([]byte(emqxUsername + ":" + emqxPassword))
 	req.Header.Add("Authorization", "Basic "+auth)
 
 	// Perform the HTTP GET request
