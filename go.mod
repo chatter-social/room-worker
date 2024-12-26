@@ -4,8 +4,11 @@ go 1.22.4
 
 require (
 	github.com/fatih/color v1.17.0
+	github.com/joho/godotenv v1.5.1
 	github.com/livekit/protocol v1.19.1
 	github.com/livekit/server-sdk-go v1.1.8
+	github.com/shopspring/decimal v1.4.0
+	github.com/steebchen/prisma-client-go v0.38.0
 )
 
 require (
@@ -31,7 +34,6 @@ require (
 	github.com/google/cel-go v0.20.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
-	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/jxskiss/base62 v1.1.0 // indirect
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
@@ -68,8 +70,6 @@ require (
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.1.0 // indirect
 	github.com/redis/go-redis/v9 v9.5.1 // indirect
-	github.com/shopspring/decimal v1.4.0 // indirect
-	github.com/steebchen/prisma-client-go v0.38.0 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/thoas/go-funk v0.9.3 // indirect

@@ -78,6 +78,7 @@ func fetchLiveRooms(client *db.PrismaClient, ctx context.Context) {
 		).Exec(ctx)
 		if err != nil {
 			fmt.Println("Error updating room listener", err)
+			continue
 		}
 		fmt.Println("Updated Room in DB", updated.ID)
 	}
