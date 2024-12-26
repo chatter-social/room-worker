@@ -661,7 +661,7 @@ model Room {
   room_muted              Boolean                 @default(false)
   shared_rooms            Sharing[]
   video_participants      RoomVideoParticipants[]
-  server_node_id          String                  @default("dc2fe3da-f88c-4c87-addb-195b87e24b1d") @db.Uuid
+  server_node_id          String                  @default("725a9e9c-7c0c-478e-91f1-d045c1d39c7c") @db.Uuid
   server_node             MediaServerNode         @relation(fields: [server_node_id], references: [id])
   studio_mode_enabled     Boolean                 @default(false)
   listener_count          Int                     @default(0)
@@ -1039,6 +1039,7 @@ model RoomChatMessages {
 model DMBox {
   id             String          @id @default(uuid()) @db.Uuid
   created        DateTime
+  active         Boolean         @default(true)
   owner_id       String          @db.Uuid
   owner          User            @relation("dms_box_owner", fields: [owner_id], references: [id])
   users_to_dmbox DMBoxToUser[]
